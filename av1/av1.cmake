@@ -482,7 +482,8 @@ list(APPEND AOM_AV1_COMMON_INTRIN_RVV
             "${AOM_ROOT}/av1/common/riscv/compound_convolve_rvv.c"
             "${AOM_ROOT}/av1/common/riscv/convolve_rvv.c"
             "${AOM_ROOT}/av1/common/riscv/highbd_compound_convolve_rvv.c"
-            "${AOM_ROOT}/av1/common/riscv/highbd_convolve_rvv.c")
+            "${AOM_ROOT}/av1/common/riscv/highbd_convolve_rvv.c"
+            "${AOM_ROOT}/av1/common/riscv/wiener_convolve_rvv.c")
 
 if(CONFIG_THREE_PASS)
   list(APPEND AOM_AV1_ENCODER_SOURCES "${AOM_ROOT}/av1/encoder/thirdpass.c"
