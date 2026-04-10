@@ -3318,8 +3318,8 @@ void av1_rc_scene_detection_onepass_rt(AV1_COMP *cpi,
   int num_mi_cols = cm->mi_params.mi_cols;
   int num_mi_rows = cm->mi_params.mi_rows;
   if (cpi->svc.number_spatial_layers > 1) {
-    num_mi_cols = cpi->svc.mi_cols_full_resoln;
-    num_mi_rows = cpi->svc.mi_rows_full_resoln;
+    num_mi_cols = size_in_mi(src_width);
+    num_mi_rows = size_in_mi(src_height);
   }
   int num_zero_temp_sad = 0;
   uint32_t min_thresh =

@@ -4069,6 +4069,7 @@ static aom_codec_err_t ctrl_set_svc_params(aom_codec_alg_priv_t *ctx,
         ppi->number_spatial_layers * ppi->number_temporal_layers - 1;
     ctx->next_frame_flags |= AOM_EFLAG_FORCE_KF;
     av1_set_svc_seq_params(ppi);
+    av1_free_svc_cyclic_refresh(cpi);
     // Check for valid values for the spatial/temporal_layer_id here, since
     // there has been a dynamic change in the number_spatial/temporal_layers,
     // and if the ctrl_set_layer_id is not used after this call, the
