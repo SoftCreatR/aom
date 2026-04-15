@@ -2141,7 +2141,8 @@ int av1_vector_match(const int16_t *ref, const int16_t *src, int bwl,
 unsigned int av1_int_pro_motion_estimation(
     const AV1_COMP *cpi, MACROBLOCK *x, BLOCK_SIZE bsize, int mi_row,
     int mi_col, const MV *ref_mv, unsigned int *y_sad_zero,
-    int me_search_size_col, int me_search_size_row, int is_var_part) {
+    int me_search_size_col, int me_search_size_row, int is_var_part,
+    int use_larger_search) {
   const AV1_COMMON *const cm = &cpi->common;
   MACROBLOCKD *xd = &x->e_mbd;
   MB_MODE_INFO *mi = xd->mi[0];
@@ -2151,8 +2152,8 @@ unsigned int av1_int_pro_motion_estimation(
   const int bh = block_size_high[bsize];
   const int is_screen = cpi->oxcf.tune_cfg.content == AOM_CONTENT_SCREEN;
   const int full_search = is_screen;
-  const bool screen_scroll_superblock =
-      is_screen && bsize == cm->seq_params->sb_size;
+  const bool scroll_superblock =
+      use_larger_search && bsize == cm->seq_params->sb_size;
   // Keep border a multiple of 16.
   const int border = (cpi->oxcf.border_in_pixels >> 4) << 4;
   int search_size_width_left = me_search_size_col;
@@ -2160,7 +2161,7 @@ unsigned int av1_int_pro_motion_estimation(
   int search_size_height_top = me_search_size_row;
   int search_size_height_bottom = me_search_size_row;
   // Allow for larger search size for column/horizontal screen motion.
-  if (screen_scroll_superblock && is_var_part) {
+  if (scroll_superblock && is_var_part) {
     if (((mi_col << 2) - search_size_width_left) < -border)
       search_size_width_left = (mi_col << 2) + border;
     if (((mi_col << 2) + search_size_width_right + bw) > cm->width + border)
@@ -2174,7 +2175,7 @@ unsigned int av1_int_pro_motion_estimation(
     }
   }
   // Allow for larger search size for row/vertical screen motion.
-  if (screen_scroll_superblock && is_var_part) {
+  if (scroll_superblock && is_var_part) {
     if (((mi_row << 2) - search_size_height_top) < -border)
       search_size_height_top = (mi_row << 2) + border;
     if (((mi_row << 2) + search_size_height_bottom + bh) > cm->height + border)
@@ -2285,6 +2286,16 @@ unsigned int av1_int_pro_motion_estimation(
   best_sad =
       cpi->ppi->fn_ptr[bsize].sdf(src_buf, src_stride, ref_buf, ref_stride);
 
+  if (!is_screen && scroll_superblock) {
+    if (best_sad_col < best_sad_row && best_sad_col < (int)best_sad) {
+      best_int_mv->as_fullmv.row = 0;
+      best_sad = best_sad_col;
+    } else if (best_sad_row < best_sad_col && best_sad_row < (int)best_sad) {
+      best_int_mv->as_fullmv.col = 0;
+      best_sad = best_sad_row;
+    }
+  }
+
   // Evaluate zero MV if found MV is non-zero.
   if (best_int_mv->as_int != 0) {
     tmp_sad = cpi->ppi->fn_ptr[bsize].sdf(x->plane[0].src.buf, src_stride,
@@ -2300,7 +2311,7 @@ unsigned int av1_int_pro_motion_estimation(
     *y_sad_zero = best_sad;
   }
 
-  if (!screen_scroll_superblock) {
+  if (!scroll_superblock) {
     const uint8_t *const pos[4] = {
       ref_buf - ref_stride,
       ref_buf - 1,
