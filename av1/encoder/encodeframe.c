@@ -1954,11 +1954,11 @@ static int aom_get_variance_boost_delta_q_res(int qindex) {
 
 #if !CONFIG_REALTIME_ONLY
 static float get_thresh_based_on_q(int qindex, int speed) {
-  const float min_threshold_arr[2] = { 0.06f, 0.09f };
-  const float max_threshold_arr[2] = { 0.10f, 0.13f };
-
-  const float min_thresh = min_threshold_arr[speed >= 3];
-  const float max_thresh = max_threshold_arr[speed >= 3];
+  const float min_threshold_arr[3] = { 0.084f, 0.087f, 0.126f };
+  const float max_threshold_arr[3] = { 0.140f, 0.150f, 0.182f };
+  const int idx = (speed >= 3) ? 2 : (speed - 1);
+  const float min_thresh = min_threshold_arr[idx];
+  const float max_thresh = max_threshold_arr[idx];
   const float thresh = min_thresh + (max_thresh - min_thresh) *
                                         ((float)MAXQ - (float)qindex) /
                                         (float)(MAXQ - MINQ);
@@ -1998,12 +1998,12 @@ static int get_spatial_mvpred_err(AV1_COMMON *cm, TplParams *const tpl_data,
 
   int mv_err = INT32_MAX;
   const int step = 1 << block_mis_log2;
-  const int mv_pred_pos_in_mis[6][2] = {
-    { -step, 0 },     { 0, -step },     { -step, step },
-    { -step, -step }, { -2 * step, 0 }, { 0, -2 * step },
+  const int mv_pred_pos_in_mis[8][2] = {
+    { -step, 0 },     { 0, -step },     { -step, step },  { -step, -step },
+    { -2 * step, 0 }, { 0, -2 * step }, { -3 * step, 0 }, { 0, -3 * step },
   };
 
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 8; i++) {
     int row_offset = mv_pred_pos_in_mis[i][0];
     int col_offset = mv_pred_pos_in_mis[i][1];
     if (!is_inside_frame_border(mi_row, mi_col, row_offset, col_offset,
