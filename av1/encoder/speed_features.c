@@ -1198,6 +1198,7 @@ static void set_good_speed_features_framesize_independent(
     sf->inter_sf.skip_arf_compound = 1;
     sf->inter_sf.prune_comp_using_best_single_mode_ref = 2;
     sf->inter_sf.use_dist_wtd_comp_flag = DIST_WTD_COMP_DISABLED;
+    sf->inter_sf.prune_inter_modes_based_on_tpl = 1;
 
     sf->interp_sf.use_interp_filter = 1;
 
@@ -1255,7 +1256,6 @@ static void set_good_speed_features_framesize_independent(
     set_txfm_rd_gate_level(sf->inter_sf.txfm_rd_gate_level, boosted ? 0 : 1);
     sf->inter_sf.inter_mode_txfm_breakout = boosted ? 0 : 1;
     sf->inter_sf.alt_ref_search_fp = 1;
-    sf->inter_sf.prune_inter_modes_based_on_tpl = 1;
     sf->inter_sf.prune_single_ref = boosted ? 1 : 2;
 
     sf->interp_sf.adaptive_interp_filter_search = 1;
