@@ -171,6 +171,25 @@ TEST(EncodeAPI, InvalidSvcParams) {
   svc_params.framerate_factor[1] = 1;
   svc_params.layer_target_bitrate[0] = 60 * cfg.rc_target_bitrate / 100;
   svc_params.layer_target_bitrate[1] = cfg.rc_target_bitrate;
+  // Check scale factors.
+  for (int i = 0; i < AOM_MAX_SS_LAYERS; i++) {
+    svc_params.scaling_factor_num[i] = 1;
+    svc_params.scaling_factor_den[i] = 1;
+  }
+  svc_params.number_spatial_layers = 2;
+  svc_params.number_temporal_layers = 1;
+  // Set invalid factors.
+  svc_params.scaling_factor_num[0] = 2;
+  svc_params.scaling_factor_den[0] = 1;
+  EXPECT_EQ(aom_codec_control(&enc, AV1E_SET_SVC_PARAMS, &svc_params),
+            AOM_CODEC_INVALID_PARAM);
+  // Set valid factors.
+  svc_params.scaling_factor_num[0] = 1;
+  svc_params.scaling_factor_den[0] = 2;
+  EXPECT_EQ(aom_codec_control(&enc, AV1E_SET_SVC_PARAMS, &svc_params),
+            AOM_CODEC_OK);
+  svc_params.scaling_factor_num[0] = 1;
+  svc_params.scaling_factor_den[0] = 1;
   for (const bool use_flexible_mode : { false, true }) {
     if (use_flexible_mode) {
       aom_svc_ref_frame_config_t ref_frame_config = {};
