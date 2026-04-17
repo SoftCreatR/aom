@@ -367,6 +367,7 @@ static void set_allintra_speed_features_framesize_independent(
   sf->tx_sf.intra_tx_size_search_init_depth_sqr = 1;
   sf->tx_sf.model_based_prune_tx_search_level = 1;
   sf->tx_sf.tx_type_search.use_reduced_intra_txset = 1;
+  sf->tx_sf.use_chroma_trellis_rd_mult = 1;
 
   sf->rt_sf.use_nonrd_pick_mode = 0;
   sf->rt_sf.discount_color_cost = 0;
@@ -2016,6 +2017,7 @@ static void set_rt_speed_features_framesize_independent(AV1_COMP *cpi,
   sf->tx_sf.tx_type_search.fast_intra_tx_type_search = 2;
   sf->tx_sf.tx_type_search.use_skip_flag_prediction = 2;
   sf->tx_sf.tx_type_search.winner_mode_tx_type_pruning = 4;
+  sf->tx_sf.use_chroma_trellis_rd_mult = 1;
 
   sf->rd_sf.optimize_coefficients = NO_TRELLIS_OPT;
   sf->rd_sf.simple_model_rd_from_var = 1;
@@ -2452,6 +2454,7 @@ static inline void init_tx_sf(TX_SPEED_FEATURES *tx_sf) {
   tx_sf->prune_intra_tx_depths_using_nn = false;
   tx_sf->use_rd_based_breakout_for_intra_tx_search = false;
   tx_sf->prune_inter_tx_split_rd_eval_lvl = 0;
+  tx_sf->use_chroma_trellis_rd_mult = 0;
 }
 
 static inline void init_rd_sf(RD_CALC_SPEED_FEATURES *rd_sf,

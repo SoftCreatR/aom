@@ -1482,6 +1482,9 @@ typedef struct TX_SPEED_FEATURES {
   // Values are 0 (not used),  1 - 2 with progressively increasing
   // aggressiveness, i.e., decreasing number of top candidates
   int prune_inter_tx_split_rd_eval_lvl;
+
+  // If 1, use a trellis rd multiplier that favors chroma plane more.
+  int use_chroma_trellis_rd_mult;
 } TX_SPEED_FEATURES;
 
 typedef struct RD_CALC_SPEED_FEATURES {
