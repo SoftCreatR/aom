@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <initializer_list>
 #include <memory>
 #include <tuple>
 
@@ -26,6 +27,7 @@
 #include "aom/aomcx.h"
 #include "aom/aom_encoder.h"
 #include "aom/aom_image.h"
+#include "aom_mem/aom_mem.h"
 
 #include "test/codec_factory.h"
 #include "test/encode_test_driver.h"
@@ -321,6 +323,83 @@ TEST(EncodeAPI, InvalidUVStrides) {
     }
   }
 }
+
+#if CONFIG_AV1_HIGHBITDEPTH
+TEST(EncodeAPI, InvalidInputRange) {
+  constexpr int kWidth = 64;
+  constexpr int kHeight = 64;
+  aom_codec_enc_cfg_t cfg;
+
+  ASSERT_EQ(aom_codec_enc_config_default(aom_codec_av1_cx(), &cfg,
+                                         /*usage=*/AOM_USAGE_REALTIME),
+            AOM_CODEC_OK);
+  cfg.g_w = kWidth;
+  cfg.g_h = kHeight;
+
+  std::unique_ptr<aom_image_t, decltype(&aom_img_free)> image(
+      aom_img_alloc(nullptr, AOM_IMG_FMT_I42016, cfg.g_w, cfg.g_h, 0),
+      &aom_img_free);
+  aom_image_t *img = image.get();
+  ASSERT_NE(img, nullptr);
+
+  for (const auto bitdepth : { AOM_BITS_8, AOM_BITS_10, AOM_BITS_12 }) {
+    cfg.g_profile = (bitdepth == AOM_BITS_12) ? 2 : 0;
+    cfg.g_bit_depth = bitdepth;
+
+    // A value that's slightly over the max is used to ensure when the range is
+    // not checked an encode won't produce any integer overflows. Values
+    // outside of the valid range are not supported, so overflows will be
+    // ignored in that case.
+    const int val = 1 << bitdepth;
+    for (const int plane : { AOM_PLANE_Y, AOM_PLANE_U, AOM_PLANE_V }) {
+      const int width = aom_img_plane_width(img, plane);
+      const int height = aom_img_plane_height(img, plane);
+      uint8_t *p = img->planes[plane];
+      for (int y = 0; y < height; ++y) {
+        aom_memset16(p, val, width);
+        p += img->stride[plane];
+      }
+    }
+
+    for (cfg.monochrome = 0; cfg.monochrome <= 1; ++cfg.monochrome) {
+      aom_codec_ctx_t enc;
+      ASSERT_EQ(aom_codec_enc_init(&enc, aom_codec_av1_cx(), &cfg,
+                                   AOM_CODEC_USE_HIGHBITDEPTH),
+                AOM_CODEC_OK);
+
+      for (int check_input_range = 0; check_input_range <= 1;
+           ++check_input_range) {
+        uint8_t *u = img->planes[AOM_PLANE_U];
+        uint8_t *v = img->planes[AOM_PLANE_V];
+        img->monochrome = cfg.monochrome;
+        if (img->monochrome) {
+          img->planes[AOM_PLANE_U] = img->planes[AOM_PLANE_V] = nullptr;
+        }
+
+        EXPECT_EQ(aom_codec_control(&enc, AOME_SET_VALIDATE_INPUT_HBD,
+                                    check_input_range),
+                  AOM_CODEC_OK);
+
+        EXPECT_EQ(aom_codec_encode(&enc, img, /*pts=*/0, /*duration=*/1,
+                                   /*flags=*/0),
+                  check_input_range ? AOM_CODEC_INVALID_PARAM : AOM_CODEC_OK)
+            << "Error: " << aom_codec_error_detail(&enc)
+            << ", bitdepth: " << bitdepth << ", monochrome: " << img->monochrome
+            << ", check_input_range: " << check_input_range;
+
+        img->planes[AOM_PLANE_U] = u;
+        img->planes[AOM_PLANE_V] = v;
+      }
+
+      EXPECT_EQ(
+          aom_codec_encode(&enc, /*img=*/nullptr, /*pts=*/0, /*duration=*/0,
+                           /*flags=*/0),
+          AOM_CODEC_OK);
+      EXPECT_EQ(aom_codec_destroy(&enc), AOM_CODEC_OK);
+    }
+  }
+}
+#endif  // CONFIG_AV1_HIGHBITDEPTH
 
 void EncodeSetSFrameOnFirstFrame(aom_img_fmt fmt, aom_codec_flags_t flag) {
   constexpr int kWidth = 2;
