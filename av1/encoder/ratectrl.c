@@ -505,10 +505,11 @@ void av1_primary_rc_init(const AV1EncoderConfig *oxcf,
   p_rc->rate_correction_factors[KF_STD] = 1.0;
   p_rc->bits_off_target = p_rc->starting_buffer_level;
 
-  p_rc->rolling_target_bits = AOMMAX(
-      1, (int)(oxcf->rc_cfg.target_bandwidth / oxcf->input_cfg.init_framerate));
-  p_rc->rolling_actual_bits = AOMMAX(
-      1, (int)(oxcf->rc_cfg.target_bandwidth / oxcf->input_cfg.init_framerate));
+  const double bits_per_frame =
+      oxcf->rc_cfg.target_bandwidth / oxcf->input_cfg.init_framerate;
+  p_rc->rolling_target_bits =
+      AOMMAX(1, bits_per_frame > INT_MAX ? INT_MAX : (int)bits_per_frame);
+  p_rc->rolling_actual_bits = p_rc->rolling_target_bits;
 }
 
 void av1_rc_init(const AV1EncoderConfig *oxcf, RATE_CONTROL *rc) {

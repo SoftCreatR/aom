@@ -2408,4 +2408,22 @@ TEST(EncodeAPI, DynamicSvcTemporalIssue502735235) {
   ASSERT_EQ(aom_codec_destroy(&codec), AOM_CODEC_OK);
 }
 
+TEST(EncodeAPI, Buganizer503197490) {
+  aom_codec_iface_t *iface = aom_codec_av1_cx();
+  aom_codec_enc_cfg_t cfg;
+  ASSERT_EQ(aom_codec_enc_config_default(iface, &cfg, AOM_USAGE_REALTIME),
+            AOM_CODEC_OK);
+
+  cfg.g_w = 640;
+  cfg.g_h = 360;
+  cfg.g_timebase.num = 570;
+  cfg.g_timebase.den = 30;
+  cfg.rc_end_usage = AOM_CBR;
+  cfg.rc_target_bitrate = 1728882;  // 1728882000 bits/s
+
+  aom_codec_ctx_t codec;
+  ASSERT_EQ(aom_codec_enc_init(&codec, iface, &cfg, 0), AOM_CODEC_OK);
+  ASSERT_EQ(aom_codec_destroy(&codec), AOM_CODEC_OK);
+}
+
 }  // namespace
