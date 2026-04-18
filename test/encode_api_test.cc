@@ -2358,17 +2358,19 @@ TEST(EncodeAPI, DynamicSvcTemporalIssue502735235) {
   // Encode at 256x512. TL0.
   aom_svc_layer_id_t layer_id = {};
   layer_id.spatial_layer_id = 0;
-  layer_id.spatial_layer_id = 0;
+  layer_id.temporal_layer_id = 0;
   ASSERT_EQ(aom_codec_control(&codec, AV1E_SET_SVC_LAYER_ID, &layer_id),
             AOM_CODEC_OK);
   aom_image_t *raw = aom_img_alloc(nullptr, AOM_IMG_FMT_I420, 256, 512, 1);
   ASSERT_NE(raw, nullptr);
+  FillImage(raw, 128);
   ASSERT_EQ(aom_codec_encode(&codec, raw, /*pts=*/0, /*duration=*/1,
                              /*flags=*/0),
             AOM_CODEC_OK);
   aom_img_free(raw);
 
-  // Encode at 256x64 TL1, twice, set keyframe for both.
+  // Encode at 256x64 TL1, twice, set keyframe on first one, delta
+  // on second.
   cfg.g_w = 256;
   cfg.g_h = 64;
   ASSERT_EQ(aom_codec_enc_config_set(&codec, &cfg), AOM_CODEC_OK);
@@ -2378,6 +2380,7 @@ TEST(EncodeAPI, DynamicSvcTemporalIssue502735235) {
             AOM_CODEC_OK);
   raw = aom_img_alloc(nullptr, AOM_IMG_FMT_I420, 256, 64, 1);
   ASSERT_NE(raw, nullptr);
+  FillImage(raw, 128);
   ASSERT_EQ(aom_codec_encode(&codec, raw, /*pts=*/1, /*duration=*/1,
                              /*flags=*/AOM_EFLAG_FORCE_KF),
             AOM_CODEC_OK);
@@ -2396,6 +2399,7 @@ TEST(EncodeAPI, DynamicSvcTemporalIssue502735235) {
             AOM_CODEC_OK);
   raw = aom_img_alloc(nullptr, AOM_IMG_FMT_I420, 256, 512, 1);
   ASSERT_NE(raw, nullptr);
+  FillImage(raw, 128);
   ASSERT_EQ(aom_codec_encode(&codec, raw, /*pts=*/3, /*duration=*/1,
                              /*flags=*/0),
             AOM_CODEC_OK);
