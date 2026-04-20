@@ -1279,6 +1279,10 @@ typedef struct INTERP_FILTER_SPEED_FEATURES {
 
   // Bias towards sharp filter
   int use_more_sharp_interp;
+
+  // Skip model RD evaluation of chroma planes during interpolation filter
+  // search.
+  int skip_model_rd_uv;
 } INTERP_FILTER_SPEED_FEATURES;
 
 typedef struct INTRA_MODE_SPEED_FEATURES {

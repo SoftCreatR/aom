@@ -1319,6 +1319,7 @@ static void set_good_speed_features_framesize_independent(
     sf->inter_sf.prune_single_ref = 2;
 
     sf->interp_sf.adaptive_interp_filter_search = 2;
+    sf->interp_sf.skip_model_rd_uv = 1;
 
     // TODO(chiyotsai@google.com): the thresholds chosen for intra hog are
     // inherited directly from luma hog with some minor tweaking. Eventually we
@@ -2416,6 +2417,7 @@ static inline void init_interp_sf(INTERP_FILTER_SPEED_FEATURES *interp_sf) {
   interp_sf->use_interp_filter = 0;
   interp_sf->skip_interp_filter_search = 0;
   interp_sf->use_more_sharp_interp = 0;
+  interp_sf->skip_model_rd_uv = 0;
 }
 
 static inline void init_intra_sf(INTRA_MODE_SPEED_FEATURES *intra_sf) {
