@@ -4034,7 +4034,8 @@ static aom_codec_err_t ctrl_set_scale_mode(aom_codec_alg_priv_t *ctx,
 static aom_codec_err_t ctrl_set_spatial_layer_id(aom_codec_alg_priv_t *ctx,
                                                  va_list args) {
   const int spatial_layer_id = va_arg(args, int);
-  if (spatial_layer_id >= MAX_NUM_SPATIAL_LAYERS)
+  if (spatial_layer_id < 0 ||
+      spatial_layer_id >= (int)ctx->ppi->number_spatial_layers)
     return AOM_CODEC_INVALID_PARAM;
   ctx->ppi->cpi->common.spatial_layer_id = spatial_layer_id;
   return AOM_CODEC_OK;
@@ -4064,6 +4065,11 @@ static aom_codec_err_t ctrl_set_number_spatial_layers(aom_codec_alg_priv_t *ctx,
 static aom_codec_err_t ctrl_set_layer_id(aom_codec_alg_priv_t *ctx,
                                          va_list args) {
   aom_svc_layer_id_t *const data = va_arg(args, aom_svc_layer_id_t *);
+  if (data->spatial_layer_id < 0 || data->temporal_layer_id < 0 ||
+      data->spatial_layer_id >= (int)ctx->ppi->number_spatial_layers ||
+      data->temporal_layer_id >= (int)ctx->ppi->number_temporal_layers) {
+    return AOM_CODEC_INVALID_PARAM;
+  }
   ctx->ppi->cpi->common.spatial_layer_id = data->spatial_layer_id;
   ctx->ppi->cpi->common.temporal_layer_id = data->temporal_layer_id;
   ctx->ppi->cpi->svc.spatial_layer_id = data->spatial_layer_id;
