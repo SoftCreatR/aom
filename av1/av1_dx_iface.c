@@ -1326,6 +1326,11 @@ static aom_codec_err_t ctrl_get_tile_data(aom_codec_alg_priv_t *ctx,
       FrameWorkerData *const frame_worker_data =
           (FrameWorkerData *)worker->data1;
       const AV1Decoder *pbi = frame_worker_data->pbi;
+      if (pbi->dec_tile_row < 0 || pbi->dec_tile_row >= MAX_TILE_ROWS ||
+          pbi->dec_tile_col < 0 || pbi->dec_tile_col >= MAX_TILE_COLS) {
+        return AOM_CODEC_ERROR;
+      }
+
       tile_data->coded_tile_data_size =
           pbi->tile_buffers[pbi->dec_tile_row][pbi->dec_tile_col].size;
       tile_data->coded_tile_data =
