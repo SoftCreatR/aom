@@ -149,22 +149,6 @@ static const int gm_available_reference_frames[GM_DISABLE_SEARCH + 1] = {
 };
 #endif
 
-// Qindex threshold levels used for selecting full-pel motion search.
-// ms_qthresh[i][j][k] indicates the qindex boundary value for 'k'th qindex band
-// for resolution index 'j' for aggressiveness level 'i'.
-// Aggressiveness increases from i = 0 to 2.
-// j = 0: lower than 720p resolution, j = 1: 720p or larger resolution.
-// Currently invoked only for speed 0, 1 and 2.
-static const int ms_qindex_thresh[3][2][2] = { { { 200, 70 }, { MAXQ, 200 } },
-                                               { { 170, 50 }, { MAXQ, 200 } },
-                                               { { 170, 40 }, { 200, 40 } } };
-
-// Full-pel search methods for aggressive search based on qindex.
-// Index 0 is for resolutions lower than 720p, index 1 for 720p or larger
-// resolutions. Currently invoked only for speed 1 and 2.
-static const SEARCH_METHODS motion_search_method[2] = { CLAMPED_DIAMOND,
-                                                        DIAMOND };
-
 // Intra only frames, golden frames (except alt ref overlays) and
 // alt ref frames tend to be coded at a higher than ambient quality
 static int frame_is_boosted(const AV1_COMP *cpi) {
@@ -2985,15 +2969,35 @@ void av1_set_speed_features_qindex_dependent(AV1_COMP *cpi, int speed) {
       // Also use reduced total search range for low resolutions at high
       // quantizers.
       const int aggr = speed;
-      const int qindex_thresh1 = ms_qindex_thresh[aggr][is_720p_or_larger][0];
-      const int qindex_thresh2 = ms_qindex_thresh[aggr][is_720p_or_larger][1];
-      const SEARCH_METHODS search_method =
-          motion_search_method[is_720p_or_larger];
-      if (cm->quant_params.base_qindex > qindex_thresh1) {
-        sf->mv_sf.search_method = search_method;
-        sf->tpl_sf.search_method = search_method;
-      } else if (cm->quant_params.base_qindex > qindex_thresh2) {
-        sf->mv_sf.search_method = NSTEP_8PT;
+
+      // For < 720p resolutions:
+      if (!is_720p_or_larger) {
+        // For < 720p resolutions:
+        static const int ms_qindex_thresh[3][2] = { { 200, 70 },
+                                                    { 170, 50 },
+                                                    { 170, 40 } };
+        const int qindex_thresh1 = ms_qindex_thresh[aggr][0];
+        const int qindex_thresh2 = ms_qindex_thresh[aggr][1];
+        if (cm->quant_params.base_qindex > qindex_thresh1) {
+          sf->mv_sf.search_method = CLAMPED_DIAMOND;
+          sf->tpl_sf.search_method = CLAMPED_DIAMOND;
+        } else if (cm->quant_params.base_qindex > qindex_thresh2) {
+          sf->mv_sf.search_method = NSTEP_8PT;
+        }
+      } else {
+        // For >= 720p resolutions:
+        static const int ms_qindex_thresh[3][2] = { { MAXQ, 200 },
+                                                    { MAXQ, -1 },
+                                                    { 200, 40 } };
+        const int qindex_thresh1 = ms_qindex_thresh[aggr][0];
+        const int qindex_thresh2 = ms_qindex_thresh[aggr][1];
+        if (cm->quant_params.base_qindex > qindex_thresh1) {
+          sf->mv_sf.search_method = DIAMOND;
+          sf->tpl_sf.search_method = DIAMOND;
+        } else if (cm->quant_params.base_qindex > qindex_thresh2) {
+          sf->mv_sf.search_method = NSTEP_8PT;
+          sf->tpl_sf.search_method = DIAMOND;
+        }
       }
     }
     sf->part_sf.less_rectangular_check_level = 1;
