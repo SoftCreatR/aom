@@ -2973,9 +2973,9 @@ void av1_set_speed_features_qindex_dependent(AV1_COMP *cpi, int speed) {
       // For < 720p resolutions:
       if (!is_720p_or_larger) {
         // For < 720p resolutions:
-        static const int ms_qindex_thresh[3][2] = { { 200, 70 },
-                                                    { 170, 50 },
-                                                    { 170, 40 } };
+        const int ms_qindex_thresh[3][2] = { { 200, 70 },
+                                             { 170, 50 },
+                                             { 170, 40 } };
         const int qindex_thresh1 = ms_qindex_thresh[aggr][0];
         const int qindex_thresh2 = ms_qindex_thresh[aggr][1];
         if (cm->quant_params.base_qindex > qindex_thresh1) {
@@ -2986,17 +2986,22 @@ void av1_set_speed_features_qindex_dependent(AV1_COMP *cpi, int speed) {
         }
       } else {
         // For >= 720p resolutions:
-        static const int ms_qindex_thresh[3][2] = { { MAXQ, 200 },
-                                                    { MAXQ, -1 },
-                                                    { 200, 40 } };
+        const int ms_qindex_thresh[3][2] = { { MAXQ, 200 },
+                                             { MAXQ, -1 },
+                                             { 200, -1 } };
+        const SEARCH_METHODS motion_search_method[3][2] = {
+          { NSTEP_8PT, NSTEP_8PT },
+          { NSTEP_8PT, DIAMOND },
+          { NSTEP_8PT, DIAMOND }
+        };
         const int qindex_thresh1 = ms_qindex_thresh[aggr][0];
         const int qindex_thresh2 = ms_qindex_thresh[aggr][1];
         if (cm->quant_params.base_qindex > qindex_thresh1) {
           sf->mv_sf.search_method = DIAMOND;
           sf->tpl_sf.search_method = DIAMOND;
         } else if (cm->quant_params.base_qindex > qindex_thresh2) {
-          sf->mv_sf.search_method = NSTEP_8PT;
-          sf->tpl_sf.search_method = DIAMOND;
+          sf->mv_sf.search_method = motion_search_method[aggr][0];
+          sf->tpl_sf.search_method = motion_search_method[aggr][1];
         }
       }
     }
