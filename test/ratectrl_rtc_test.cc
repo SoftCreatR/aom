@@ -41,6 +41,8 @@ class RcInterfaceTest : public ::libaom_test::EncoderTest,
         frame_drop_thresh_(0) {
     memset(&svc_params_, 0, sizeof(svc_params_));
     memset(&layer_id_, 0, sizeof(layer_id_));
+    memset(&frame_params_, 0, sizeof(frame_params_));
+    frame_params_.frame_type = aom::kKeyFrame;
   }
 
   ~RcInterfaceTest() override = default;
