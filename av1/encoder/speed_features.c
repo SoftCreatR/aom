@@ -1280,6 +1280,7 @@ static void set_good_speed_features_framesize_independent(
             : (boosted ? SIMPLE_AGG_LVL3 : QIDX_BASED_AGG_LVL1);
     sf->part_sf.prune_ext_part_using_split_info = 1;
     sf->part_sf.simple_motion_search_rect_split = 1;
+    sf->part_sf.prune_h_or_v_4part_using_sms_info = true;
 
     sf->mv_sf.subpel_search_method = SUBPEL_TREE_PRUNED;
     sf->mv_sf.search_method = DIAMOND;
@@ -2311,6 +2312,7 @@ static inline void init_part_sf(PARTITION_SPEED_FEATURES *part_sf) {
   part_sf->skip_non_sq_part_based_on_none = 0;
   part_sf->disable_8x8_part_based_on_qidx = 0;
   part_sf->split_partition_penalty_level = 0;
+  part_sf->prune_h_or_v_4part_using_sms_info = false;
 }
 
 static inline void init_mv_sf(MV_SPEED_FEATURES *mv_sf) {
