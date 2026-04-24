@@ -576,7 +576,7 @@ static void init_motion_compensation_bigdia(search_site_config *cfg, int stride,
   cfg->num_search_steps = MAX_PATTERN_SCALES;
 }
 
-// Search site initialization for HEX / FAST_HEX search methods.
+// Search site initialization for HEX search method.
 static void init_motion_compensation_hex(search_site_config *cfg, int stride,
                                          int level) {
   (void)level;
@@ -1262,16 +1262,6 @@ static int bigdia_search(const FULLPEL_MV start_mv,
                         cost_list, best_mv, best_mv_stats);
 }
 
-static int fast_hex_search(const FULLPEL_MV start_mv,
-                           const FULLPEL_MOTION_SEARCH_PARAMS *ms_params,
-                           const int search_step, const int do_init_search,
-                           int *cost_list, FULLPEL_MV *best_mv,
-                           FULLPEL_MV_STATS *best_mv_stats) {
-  return hex_search(start_mv, ms_params,
-                    AOMMAX(MAX_MVSEARCH_STEPS - 2, search_step), do_init_search,
-                    cost_list, best_mv, best_mv_stats);
-}
-
 static int vfast_dia_search(const FULLPEL_MV start_mv,
                             const FULLPEL_MOTION_SEARCH_PARAMS *ms_params,
                             const int search_step, const int do_init_search,
@@ -1815,15 +1805,10 @@ int av1_full_pixel_search(const FULLPEL_MV start_mv,
       var = fast_dia_search(start_mv, ms_params, step_param, 0, cost_list,
                             best_mv, best_mv_stats);
       break;
-    case FAST_HEX:
-      var = fast_hex_search(start_mv, ms_params, step_param, 0, cost_list,
-                            best_mv, best_mv_stats);
-      break;
     case HEX:
       var = hex_search(start_mv, ms_params, step_param, 1, cost_list, best_mv,
                        best_mv_stats);
       break;
-
     case BIGDIA:
       var = bigdia_search(start_mv, ms_params, step_param, 1, cost_list,
                           best_mv, best_mv_stats);

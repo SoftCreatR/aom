@@ -72,14 +72,12 @@ enum {
   // up to 11 search stages. First stage consists of 4 search
   // points and the rest with 8 search points each.
   BIGDIA = 5,
-  // HEX search with up to 2 stages.
-  FAST_HEX = 6,
   // BIGDIA search with up to 2 stages.
-  FAST_DIAMOND = 7,
+  FAST_DIAMOND = 6,
   // BIGDIA search with up to 3 stages.
-  FAST_BIGDIA = 8,
+  FAST_BIGDIA = 7,
   // BIGDIA search with up to 1 stage.
-  VFAST_DIAMOND = 9,
+  VFAST_DIAMOND = 8,
   // Total number of search methods.
   NUM_SEARCH_METHODS,
   // Number of distinct search methods.
