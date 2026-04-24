@@ -172,7 +172,6 @@ static const SEARCH_METHODS search_method_lookup[NUM_SEARCH_METHODS] = {
   CLAMPED_DIAMOND,  // CLAMPED_DIAMOND
   HEX,              // HEX
   BIGDIA,           // BIGDIA
-  SQUARE,           // SQUARE
   HEX,              // FAST_HEX
   BIGDIA,           // FAST_DIAMOND
   BIGDIA,           // FAST_BIGDIA

@@ -576,60 +576,6 @@ static void init_motion_compensation_bigdia(search_site_config *cfg, int stride,
   cfg->num_search_steps = MAX_PATTERN_SCALES;
 }
 
-// Search site initialization for SQUARE search method.
-static void init_motion_compensation_square(search_site_config *cfg, int stride,
-                                            int level) {
-  (void)level;
-  cfg->stride = stride;
-  // All scales have 8 closest points in square shape.
-  static const int square_num_candidates[MAX_PATTERN_SCALES] = {
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-  };
-
-  // Square search method candidates.
-  // Note that the largest candidate step at each scale is 2^scale.
-  /* clang-format off */
-    static const FULLPEL_MV
-        square_candidates[MAX_PATTERN_SCALES][MAX_PATTERN_CANDIDATES] = {
-             { { -1, -1 }, { 0, -1 }, { 1, -1 }, { 1, 0 }, { 1, 1 }, { 0, 1 },
-               { -1, 1 }, { -1, 0 } },
-             { { -2, -2 }, { 0, -2 }, { 2, -2 }, { 2, 0 }, { 2, 2 }, { 0, 2 },
-               { -2, 2 }, { -2, 0 } },
-             { { -4, -4 }, { 0, -4 }, { 4, -4 }, { 4, 0 }, { 4, 4 }, { 0, 4 },
-               { -4, 4 }, { -4, 0 } },
-             { { -8, -8 }, { 0, -8 }, { 8, -8 }, { 8, 0 }, { 8, 8 }, { 0, 8 },
-               { -8, 8 }, { -8, 0 } },
-             { { -16, -16 }, { 0, -16 }, { 16, -16 }, { 16, 0 }, { 16, 16 },
-               { 0, 16 }, { -16, 16 }, { -16, 0 } },
-             { { -32, -32 }, { 0, -32 }, { 32, -32 }, { 32, 0 }, { 32, 32 },
-               { 0, 32 }, { -32, 32 }, { -32, 0 } },
-             { { -64, -64 }, { 0, -64 }, { 64, -64 }, { 64, 0 }, { 64, 64 },
-               { 0, 64 }, { -64, 64 }, { -64, 0 } },
-             { { -128, -128 }, { 0, -128 }, { 128, -128 }, { 128, 0 },
-               { 128, 128 }, { 0, 128 }, { -128, 128 }, { -128, 0 } },
-             { { -256, -256 }, { 0, -256 }, { 256, -256 }, { 256, 0 },
-               { 256, 256 }, { 0, 256 }, { -256, 256 }, { -256, 0 } },
-             { { -512, -512 }, { 0, -512 }, { 512, -512 }, { 512, 0 },
-               { 512, 512 }, { 0, 512 }, { -512, 512 }, { -512, 0 } },
-             { { -1024, -1024 }, { 0, -1024 }, { 1024, -1024 }, { 1024, 0 },
-               { 1024, 1024 }, { 0, 1024 }, { -1024, 1024 }, { -1024, 0 } },
-    };
-
-  /* clang-format on */
-  int radius = 1;
-  for (int i = 0; i < MAX_PATTERN_SCALES; ++i) {
-    cfg->searches_per_step[i] = square_num_candidates[i];
-    cfg->radius[i] = radius;
-    for (int j = 0; j < MAX_PATTERN_CANDIDATES; ++j) {
-      search_site *const site = &cfg->site[i][j];
-      site->mv = square_candidates[i][j];
-      site->offset = get_offset_from_fullmv(&site->mv, stride);
-    }
-    radius *= 2;
-  }
-  cfg->num_search_steps = MAX_PATTERN_SCALES;
-}
-
 // Search site initialization for HEX / FAST_HEX search methods.
 static void init_motion_compensation_hex(search_site_config *cfg, int stride,
                                          int level) {
@@ -683,8 +629,7 @@ const av1_init_search_site_config
     av1_init_motion_compensation[NUM_DISTINCT_SEARCH_METHODS] = {
       init_dsmotion_compensation,     init_motion_compensation_nstep,
       init_motion_compensation_nstep, init_dsmotion_compensation,
-      init_motion_compensation_hex,   init_motion_compensation_bigdia,
-      init_motion_compensation_square
+      init_motion_compensation_hex,   init_motion_compensation_bigdia
     };
 
 // Checks whether the mv is within range of the mv_limits
@@ -1317,15 +1262,6 @@ static int bigdia_search(const FULLPEL_MV start_mv,
                         cost_list, best_mv, best_mv_stats);
 }
 
-static int square_search(const FULLPEL_MV start_mv,
-                         const FULLPEL_MOTION_SEARCH_PARAMS *ms_params,
-                         const int search_step, const int do_init_search,
-                         int *cost_list, FULLPEL_MV *best_mv,
-                         FULLPEL_MV_STATS *best_mv_stats) {
-  return pattern_search(start_mv, ms_params, search_step, do_init_search,
-                        cost_list, best_mv, best_mv_stats);
-}
-
 static int fast_hex_search(const FULLPEL_MV start_mv,
                            const FULLPEL_MOTION_SEARCH_PARAMS *ms_params,
                            const int search_step, const int do_init_search,
@@ -1887,10 +1823,7 @@ int av1_full_pixel_search(const FULLPEL_MV start_mv,
       var = hex_search(start_mv, ms_params, step_param, 1, cost_list, best_mv,
                        best_mv_stats);
       break;
-    case SQUARE:
-      var = square_search(start_mv, ms_params, step_param, 1, cost_list,
-                          best_mv, best_mv_stats);
-      break;
+
     case BIGDIA:
       var = bigdia_search(start_mv, ms_params, step_param, 1, cost_list,
                           best_mv, best_mv_stats);
