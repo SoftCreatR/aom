@@ -1387,12 +1387,15 @@ static void set_encoder_config(AV1EncoderConfig *oxcf,
   kf_cfg->enable_intrabc = extra_cfg->enable_intrabc;
 
   oxcf->speed = extra_cfg->cpu_used;
-  // TODO(yunqingwang, any) In REALTIME mode, 1080p performance at speed 5 & 6
-  // is quite bad. Force to use speed 7 for now. Will investigate it when we
-  // work on rd path optimization later.
-  if (oxcf->mode == REALTIME && AOMMIN(cfg->g_w, cfg->g_h) >= 1080 &&
-      oxcf->speed < 7)
-    oxcf->speed = 7;
+  if (oxcf->mode == REALTIME) {
+#if CONFIG_REALTIME_ONLY
+    oxcf->speed = AOMMAX(oxcf->speed, 5);
+#endif
+    // TODO(yunqingwang, any) In REALTIME mode, 1080p performance at speed 5 & 6
+    // is quite bad. Force to use speed 7 for now. Will investigate it when we
+    // work on rd path optimization later.
+    if (AOMMIN(cfg->g_w, cfg->g_h) >= 1080 && oxcf->speed < 7) oxcf->speed = 7;
+  }
 
   // Now, low complexity decode mode is only supported for good-quality
   // encoding speed 1 to 3 and for vertical videos with a resolution between
