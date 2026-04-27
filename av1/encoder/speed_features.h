@@ -1615,6 +1615,13 @@ typedef struct LOOP_FILTER_SPEED_FEATURES {
   // This speed feature is only enabled in all intra mode.
   bool zero_low_cdef_strengths;
 
+  // Decoder side speed feature for adaptive CDEF control based on MSE
+  // 0 : Enable CDEF for all planes
+  // 1 : Disable CDEF for chroma planes and disable for luma adaptively based on
+  //     current frame's pyramid level and improvement in MSE after CDEF
+  //     filtering.
+  int adaptive_cdef_mode;
+
   // Decoder side speed feature to add penalty for use of dual-sgr filters.
   // Takes values 0 - 10, 0 indicating no penalty and each additional level
   // adding a penalty of 1%
